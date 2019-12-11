@@ -22,7 +22,7 @@ public class HapticFeedbackPlugin: CAPPlugin {
     }
     
     override public init!(bridge: CAPBridge!, pluginId: String!, pluginName: String!) {
-        super.init(bridge, pluginId, pluginName)
+        super.init(bridge: bridge, pluginId: pluginId, pluginName: pluginName)
     }
     
     @objc func start(_ call: CAPPluginCall) {
