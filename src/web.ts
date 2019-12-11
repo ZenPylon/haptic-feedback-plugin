@@ -1,7 +1,10 @@
 import { WebPlugin } from '@capacitor/core';
-import { HapticFeedbackPluginPlugin } from './definitions';
+import { HapticFeedbackPlugin } from './definitions';
 
-export class HapticFeedbackPluginWeb extends WebPlugin implements HapticFeedbackPluginPlugin {
+export class HapticFeedbackPluginWeb extends WebPlugin
+  implements HapticFeedbackPlugin {
+  warningMessage = 'Haptics not supported on web';
+
   constructor() {
     super({
       name: 'HapticFeedbackPlugin',
@@ -9,10 +12,12 @@ export class HapticFeedbackPluginWeb extends WebPlugin implements HapticFeedback
     });
   }
 
-  async echo(options: { value: string }): Promise<{value: string}> {
-    console.log('ECHO', options);
-    return options;
+  async printNotSupportedWarning() {
+    console.warn(this.warningMessage);
   }
+
+  start = this.printNotSupportedWarning;
+  stop = this.printNotSupportedWarning;
 }
 
 const HapticFeedbackPlugin = new HapticFeedbackPluginWeb();

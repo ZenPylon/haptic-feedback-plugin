@@ -1,9 +1,10 @@
-declare module "@capacitor/core" {
+declare module '@capacitor/core' {
   interface PluginRegistry {
-    HapticFeedbackPlugin: HapticFeedbackPluginPlugin;
+    HapticFeedback: HapticFeedbackPlugin;
   }
 }
 
-export interface HapticFeedbackPluginPlugin {
-  echo(options: { value: string }): Promise<{value: string}>;
+export interface HapticFeedbackPlugin {
+  start(): Promise<void>;
+  stop(): Promise<void>;
 }
