@@ -14,17 +14,20 @@ public class HapticFeedbackPlugin: CAPPlugin {
     override init () {
         super.init()
         do {
-            engine = try CHHapticEngine()
+            self.engine = try CHHapticEngine()
         }
         catch {
             print("There was an error creating the engine: \(error.localizedDescription)")
         }
-        
+    }
+    
+    override public init!(bridge: CAPBridge!, pluginId: String!, pluginName: String!) {
+        super.init(bridge, pluginId, pluginName)
     }
     
     @objc func start(_ call: CAPPluginCall) {
         do {
-            try engine?.start()
+            try self.engine?.start()
         } catch {
             let message = "There was an error starting the engine: \(error.localizedDescription)"
             print(message)
@@ -35,7 +38,7 @@ public class HapticFeedbackPlugin: CAPPlugin {
     }
     
     @objc func stop(_ call: CAPPluginCall) {
-        engine?.stop()
+        self.engine?.stop()
         call.success()
     }
     
