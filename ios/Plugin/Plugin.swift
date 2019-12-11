@@ -10,24 +10,36 @@ import Capacitor
 @objc(HapticFeedbackPlugin)
 public class HapticFeedbackPlugin: CAPPlugin {
     var engine: CHHapticEngine?
+    var hapticDict: [CHHapticPattern.Key : [[CHHapticPattern.Key : [CHHapticPattern.Key : Any]]]]?
+    var pattern: CHHapticPattern?
+    var player: CHHapticPatternPlayer?
     
-    override init () {
-        super.init()
+    override init() {
         do {
+            self.hapticDict = [
+                CHHapticPattern.Key.pattern: [
+                    [CHHapticPattern.Key.event: [CHHapticPattern.Key.eventType: CHHapticEvent.EventType.hapticTransient,
+                          CHHapticPattern.Key.time: 0.001,
+                          CHHapticPattern.Key.eventDuration: 1.0] // End of first event
+                    ] // End of first dictionary entry in the array
+                ] // End of array
+            ] // End of haptic dictionary
+            
+            self.pattern = try CHHapticPattern(dictionary: self.hapticDict!)
             self.engine = try CHHapticEngine()
+            self.player = try engine?.makePlayer(with: self.pattern!)
         }
         catch {
             print("There was an error creating the engine: \(error.localizedDescription)")
         }
+        super.init()
     }
     
-    override public init!(bridge: CAPBridge!, pluginId: String!, pluginName: String!) {
-        super.init(bridge: bridge, pluginId: pluginId, pluginName: pluginName)
-    }
-    
+
     @objc func start(_ call: CAPPluginCall) {
         do {
             try self.engine?.start()
+            try self.player?.start(atTime: 0)
         } catch {
             let message = "There was an error starting the engine: \(error.localizedDescription)"
             print(message)
