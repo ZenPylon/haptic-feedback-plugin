@@ -10,9 +10,11 @@ import Capacitor
 @objc(HapticFeedbackPlugin)
 public class HapticFeedbackPlugin: CAPPlugin {
     var engine: CHHapticEngine?
+    var hapticPattern: CHHapticPattern?
+    var hapticPatternCurve: CHHapticParameterCurve?
     var hapticDict: [CHHapticPattern.Key : [[CHHapticPattern.Key : [CHHapticPattern.Key : Any]]]]?
     var pattern: CHHapticPattern?
-    var player: CHHapticPatternPlayer?
+    var player: CHHapticAdvancedPatternPlayer?
     
     override init() {
         do {
@@ -27,7 +29,7 @@ public class HapticFeedbackPlugin: CAPPlugin {
             
             self.pattern = try CHHapticPattern(dictionary: self.hapticDict!)
             self.engine = try CHHapticEngine()
-            self.player = try engine?.makePlayer(with: self.pattern!)
+            self.player = try engine?.makeAdvancedPlayer(with: self.pattern!)
         }
         catch {
             print("There was an error creating the engine: \(error.localizedDescription)")
