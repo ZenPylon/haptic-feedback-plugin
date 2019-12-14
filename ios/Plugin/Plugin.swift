@@ -17,7 +17,7 @@ public class HapticFeedbackPlugin: CAPPlugin {
     var pattern: CHHapticPattern?
     var player: CHHapticAdvancedPatternPlayer?
     
-    override init() {
+    override public init!(bridge: CAPBridge!, pluginId: String!, pluginName: String!) {
         do {
             self.hapticDict = [
                 CHHapticPattern.Key.pattern: [
@@ -46,7 +46,7 @@ public class HapticFeedbackPlugin: CAPPlugin {
         catch {
             print("There was an error creating the engine: \(error.localizedDescription)")
         }
-        super.init()
+        super.init(bridge: bridge, pluginId: pluginId, pluginName: pluginName)
     }
     
 
