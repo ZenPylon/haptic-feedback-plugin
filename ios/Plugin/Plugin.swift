@@ -10,8 +10,9 @@ import Capacitor
 @objc(HapticFeedbackPlugin)
 public class HapticFeedbackPlugin: CAPPlugin {
     var engine: CHHapticEngine?
+    var hapticEvent: CHHapticEvent?
     var hapticPattern: CHHapticPattern?
-    var hapticPatternCurve: CHHapticParameterCurve?
+    var hapticParameterCurve: CHHapticParameterCurve?
     var hapticDict: [CHHapticPattern.Key : [[CHHapticPattern.Key : [CHHapticPattern.Key : Any]]]]?
     var pattern: CHHapticPattern?
     var player: CHHapticAdvancedPatternPlayer?
@@ -27,9 +28,20 @@ public class HapticFeedbackPlugin: CAPPlugin {
                 ] // End of array
             ] // End of haptic dictionary
             
-            self.pattern = try CHHapticPattern(dictionary: self.hapticDict!)
+            
+            let controlPoint1 = CHHapticParameterCurve.ControlPoint.init(relativeTime: 0, value: 0)
+            let controlPoint2 = CHHapticParameterCurve.ControlPoint.init(relativeTime: 4, value: 1)
+            
+            self.hapticParameterCurve = CHHapticParameterCurve.init(
+                parameterID: .hapticIntensityControl,
+                controlPoints: [controlPoint1, controlPoint2],
+                relativeTime: 0)
+            
             self.engine = try CHHapticEngine()
-            self.player = try engine?.makeAdvancedPlayer(with: self.pattern!)
+            self.hapticEvent = CHHapticEvent.init(eventType: .hapticContinuous, parameters: [], relativeTime: 0, duration: 5)
+            self.hapticPattern = try CHHapticPattern.init(events: [self.hapticEvent!], parameterCurves: [self.hapticParameterCurve!])
+            
+            self.player = try self.engine?.makeAdvancedPlayer(with: self.pattern!)
         }
         catch {
             print("There was an error creating the engine: \(error.localizedDescription)")
