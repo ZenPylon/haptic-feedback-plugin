@@ -2,14 +2,14 @@ import CoreHaptics
 import Foundation
 import Capacitor
 
-
-public class JSHapticEventType {
+@available(iOS 13.0, *)
+public class JSHapticEvent {
     var duration: Double
     var eventType: String
-    var parameters: Array<Any>
+    var parameters: Array<CHHapticEventParameter>
     var relativeTime: Double
     
-    init(eventType: String, parameters: Array<Any>, relativeTime: Double, duration: Double) {
+    init(eventType: String, parameters: Array<CHHapticEventParameter>, relativeTime: Double, duration: Double) {
         self.eventType = eventType
         self.parameters = parameters
         self.relativeTime = relativeTime
@@ -18,28 +18,30 @@ public class JSHapticEventType {
     
 }
 
+@available(iOS 13.0, *)
 public class JSHapticPattern {
-    var events: Array<JSHapticEventType>
+    var events: Array<JSHapticEvent>
     var parameterCurves: Array<Any>
     
-    init(events: Array<JSHapticEventType>, parameterCurves: Array<Any>) {
+    init(events: Array<JSHapticEvent>, parameterCurves: Array<Any>) {
         self.events = events
         self.parameterCurves = parameterCurves
     }
 }
 
 @available(iOS 13.0, *)
-public class JSHpaticParameterCurve {
-    var parameterId: CHHapticPattern.Key
+public class JSHapticParameterCurve {
+    var parameterId: String
     var controlPoints: Array<CHHapticParameterCurve.ControlPoint>
     var relativeTime: Double
     
-    init(parameterId: CHHapticPattern.Key, controlPoints: Array<CHHapticParameterCurve.ControlPoint>, relativeTime: Double) {
+    init(parameterId: String, controlPoints: Array<CHHapticParameterCurve.ControlPoint>, relativeTime: Double) {
         self.parameterId = parameterId
         self.controlPoints = controlPoints
         self.relativeTime = relativeTime
     }
 }
+
 
 /**
  * Please read the Capacitor iOS Plugin Development Guide
@@ -48,9 +50,13 @@ public class JSHpaticParameterCurve {
 @available(iOS 13.0, *)
 @objc(HapticFeedbackPlugin)
 public class HapticFeedbackPlugin: CAPPlugin {
-    let stringToHapticType: Dictionary<String, CHHapticEvent.EventType> = [
+    let stringToHapticEventType: Dictionary<String, CHHapticEvent.EventType> = [
         "continuous": .hapticContinuous,
         "transient": .hapticTransient
+    ]
+    let stringToHapticParameterId: Dictionary<String, CHHapticDynamicParameter.ID> = [
+        "intensity": .hapticIntensityControl
+        "sharpness": .hapticSharpnessControl
     ]
     
     var engine: CHHapticEngine?
@@ -95,8 +101,23 @@ public class HapticFeedbackPlugin: CAPPlugin {
     
     @objc func makeAdvancedPlayer(_ call: CAPPluginCall) {
         do {
-            let patternData = call.getObject("pattern") as Any
-            patternData.events
+            let jsEvents = call.options["events"] as! Array<JSHapticEvent>
+            let jsParameterCurves = call.options["parameterCurves"] as! Array<JSHapticParameterCurve>
+            
+            let events = jsEvents.map{ event -> CHHapticEvent in
+                return CHHapticEvent.init(eventType: stringToHapticEventType[event.eventType] ?? .hapticContinuous,
+                                          parameters: event.parameters,
+                                          relativeTime: event.relativeTime,
+                                          duration: event.duration
+                )
+            }
+            
+            let parameteCurves = jsParameterCurves.map{ curve -> CHHapticParameterCurve in
+                return CHHapticParameterCurve.init(parameterID: stringToHapticParameterId[curve.parameterId] ?? .hapticIntensityControl,
+                                                   controlPoints: curve.controlPoints,
+                                                   relativeTime: curve.relativeTime
+                )
+            }
             
             try self.player = self.engine?.makeAdvancedPlayer(with: self.pattern!)
         } catch {
