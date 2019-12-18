@@ -55,7 +55,7 @@ public class HapticFeedbackPlugin: CAPPlugin {
         "transient": .hapticTransient
     ]
     let stringToHapticParameterId: Dictionary<String, CHHapticDynamicParameter.ID> = [
-        "intensity": .hapticIntensityControl
+        "intensity": .hapticIntensityControl,
         "sharpness": .hapticSharpnessControl
     ]
     
@@ -66,39 +66,7 @@ public class HapticFeedbackPlugin: CAPPlugin {
     var hapticDict: [CHHapticPattern.Key : [[CHHapticPattern.Key : [CHHapticPattern.Key : Any]]]]?
     var pattern: CHHapticPattern?
     var player: CHHapticAdvancedPatternPlayer?
-    
-    override public init!(bridge: CAPBridge!, pluginId: String!, pluginName: String!) {
-        do {
-            self.hapticDict = [
-                CHHapticPattern.Key.pattern: [
-                    [CHHapticPattern.Key.event: [CHHapticPattern.Key.eventType: CHHapticEvent.EventType.hapticTransient,
-                          CHHapticPattern.Key.time: 0.001,
-                          CHHapticPattern.Key.eventDuration: 1.0] // End of first event
-                    ] // End of first dictionary entry in the array
-                ] // End of array
-            ] // End of haptic dictionary
-            
-            
-            let controlPoint1 = CHHapticParameterCurve.ControlPoint.init(relativeTime: 0, value: 0)
-            let controlPoint2 = CHHapticParameterCurve.ControlPoint.init(relativeTime: 4, value: 1)
-            
-            self.hapticParameterCurve = CHHapticParameterCurve.init(
-                parameterID: .hapticIntensityControl,
-                controlPoints: [controlPoint1, controlPoint2],
-                relativeTime: 0)
-            
-            self.engine = try CHHapticEngine()
-            self.hapticEvent = CHHapticEvent.init(eventType: .hapticContinuous, parameters: [], relativeTime: 0, duration: 5)
-            self.hapticPattern = try CHHapticPattern.init(events: [self.hapticEvent!], parameterCurves: [self.hapticParameterCurve!])
-            
-            self.player = try self.engine?.makeAdvancedPlayer(with: self.pattern!)
-        }
-        catch {
-            print("There was an error creating the engine: \(error.localizedDescription)")
-        }
-        super.init(bridge: bridge, pluginId: pluginId, pluginName: pluginName)
-    }
-    
+
     @objc func makeAdvancedPlayer(_ call: CAPPluginCall) {
         do {
             let jsEvents = call.options["events"] as! Array<JSHapticEvent>
@@ -112,16 +80,19 @@ public class HapticFeedbackPlugin: CAPPlugin {
                 )
             }
             
-            let parameteCurves = jsParameterCurves.map{ curve -> CHHapticParameterCurve in
+            let parameterCurves = jsParameterCurves.map{ curve -> CHHapticParameterCurve in
                 return CHHapticParameterCurve.init(parameterID: stringToHapticParameterId[curve.parameterId] ?? .hapticIntensityControl,
                                                    controlPoints: curve.controlPoints,
                                                    relativeTime: curve.relativeTime
                 )
             }
-            
+            self.pattern = try CHHapticPattern.init(events: events, parameterCurves: parameterCurves)
             try self.player = self.engine?.makeAdvancedPlayer(with: self.pattern!)
+            call.success()
         } catch {
-            call.error("blah")
+            let message = "There was an error while making the advanced player: \(error.localizedDescription)"
+            print(message)
+            call.error(message)
         }
     }
 
