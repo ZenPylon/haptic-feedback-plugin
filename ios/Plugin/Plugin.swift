@@ -50,22 +50,45 @@ public class HapticFeedbackPlugin: CAPPlugin {
     }
     
 
-    @objc func start(_ call: CAPPluginCall) {
+    @objc func startEngine(_ call: CAPPluginCall) {
         do {
             try self.engine?.start()
-            try self.player?.start(atTime: 0)
+            call.success()
         } catch {
             let message = "There was an error starting the engine: \(error.localizedDescription)"
             print(message)
-            return call.error(message)
+            call.error(message)
         }
     
+    }
+    
+    @objc func stopEngine(_ call: CAPPluginCall) {
+        self.engine?.stop()
         call.success()
     }
     
-    @objc func stop(_ call: CAPPluginCall) {
-        self.engine?.stop()
-        call.success()
+    @objc func startPlayer(_ call: CAPPluginCall) {
+           do {
+               let atTime = call.getDouble("atTime") ?? 0
+               try self.player?.start(atTime: atTime)
+               call.success()
+           } catch {
+               let message = "There was an error starting the player: \(error.localizedDescription)"
+               print(message)
+               call.error(message)
+           }
+       }
+    
+    @objc func stopPlayer(_ call: CAPPluginCall) {
+        do {
+            let atTime = call.getDouble("atTime") ?? 0
+            try self.player?.stop(atTime: atTime)
+            call.success()
+        } catch {
+            let message = "There was an error stopping the player: \(error.localizedDescription)"
+            print(message)
+            call.error(message)
+        }
     }
     
 }
