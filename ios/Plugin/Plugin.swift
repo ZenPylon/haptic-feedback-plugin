@@ -2,6 +2,45 @@ import CoreHaptics
 import Foundation
 import Capacitor
 
+
+public class JSHapticEventType {
+    var duration: Double
+    var eventType: String
+    var parameters: Array<Any>
+    var relativeTime: Double
+    
+    init(eventType: String, parameters: Array<Any>, relativeTime: Double, duration: Double) {
+        self.eventType = eventType
+        self.parameters = parameters
+        self.relativeTime = relativeTime
+        self.duration = duration
+    }
+    
+}
+
+public class JSHapticPattern {
+    var events: Array<JSHapticEventType>
+    var parameterCurves: Array<Any>
+    
+    init(events: Array<JSHapticEventType>, parameterCurves: Array<Any>) {
+        self.events = events
+        self.parameterCurves = parameterCurves
+    }
+}
+
+@available(iOS 13.0, *)
+public class JSHpaticParameterCurve {
+    var parameterId: CHHapticPattern.Key
+    var controlPoints: Array<CHHapticParameterCurve.ControlPoint>
+    var relativeTime: Double
+    
+    init(parameterId: CHHapticPattern.Key, controlPoints: Array<CHHapticParameterCurve.ControlPoint>, relativeTime: Double) {
+        self.parameterId = parameterId
+        self.controlPoints = controlPoints
+        self.relativeTime = relativeTime
+    }
+}
+
 /**
  * Please read the Capacitor iOS Plugin Development Guide
  * here: https://capacitor.ionicframework.com/docs/plugins/ios
@@ -9,6 +48,11 @@ import Capacitor
 @available(iOS 13.0, *)
 @objc(HapticFeedbackPlugin)
 public class HapticFeedbackPlugin: CAPPlugin {
+    let stringToHapticType: Dictionary<String, CHHapticEvent.EventType> = [
+        "continuous": .hapticContinuous,
+        "transient": .hapticTransient
+    ]
+    
     var engine: CHHapticEngine?
     var hapticEvent: CHHapticEvent?
     var hapticPattern: CHHapticPattern?
@@ -49,6 +93,16 @@ public class HapticFeedbackPlugin: CAPPlugin {
         super.init(bridge: bridge, pluginId: pluginId, pluginName: pluginName)
     }
     
+    @objc func makeAdvancedPlayer(_ call: CAPPluginCall) {
+        do {
+            let patternData = call.getObject("pattern") as Any
+            patternData.events
+            
+            try self.player = self.engine?.makeAdvancedPlayer(with: self.pattern!)
+        } catch {
+            call.error("blah")
+        }
+    }
 
     @objc func startEngine(_ call: CAPPluginCall) {
         do {
