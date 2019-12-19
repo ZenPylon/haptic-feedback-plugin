@@ -5,6 +5,9 @@ declare module '@capacitor/core' {
 }
 
 export interface HapticFeedbackPlugin {
-  start(): Promise<void>;
-  stop(): Promise<void>;
+  startEngine(): Promise<void>;
+  stopEngine(): Promise<void>;
+  makeAdvancedPlayer(): Promise<void>;
+  startPlayer(): Promise<void>;
+  stopPlayer(): Promise<void>;
 }
