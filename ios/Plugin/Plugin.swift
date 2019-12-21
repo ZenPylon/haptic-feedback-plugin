@@ -5,8 +5,8 @@ import Capacitor
 @available(iOS 13.0, *)
 public class JSHapticEventParameter {
     public static var stringToHapticParameterID: Dictionary<String, CHHapticEvent.ParameterID> = [
-        "intensity": .hapticIntensity,
-        "sharpness": .hapticSharpness
+        "hapticIntensity": .hapticIntensity,
+        "hapticSharpness": .hapticSharpness
     ]
     
     public static func toCHHapticEventParameter(_ jsEventParameter:[String: Any]) -> CHHapticEventParameter {
@@ -53,8 +53,8 @@ public class JSHapticPattern {
 @available(iOS 13.0, *)
 public class JSHapticParameterCurve {
     public static var stringToHapticParameterId: Dictionary<String, CHHapticDynamicParameter.ID> = [
-        "intensity": .hapticIntensityControl,
-        "sharpness": .hapticSharpnessControl
+        "hapticIntensity": .hapticIntensityControl,
+        "hapticSharpness": .hapticSharpnessControl
     ]
     
     public static func toCHHapticParameterCurve(_ jsParameterCurve: [String: Any]) -> CHHapticParameterCurve {
@@ -78,8 +78,8 @@ public class JSHapticParameterCurve {
 @objc(HapticFeedbackPlugin)
 public class HapticFeedbackPlugin: CAPPlugin {
     var stringToHapticEventType: Dictionary<String, CHHapticEvent.EventType> = [
-        "continuous": .hapticContinuous,
-        "transient": .hapticTransient
+        "hapticContinuous": .hapticContinuous,
+        "hapticTransient": .hapticTransient
     ]
     
     var engine: CHHapticEngine?
