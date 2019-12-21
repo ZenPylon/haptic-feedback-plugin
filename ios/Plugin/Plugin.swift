@@ -63,20 +63,25 @@ public class HapticFeedbackPlugin: CAPPlugin {
     var hapticEvent: CHHapticEvent?
     var hapticPattern: CHHapticPattern?
     var hapticParameterCurve: CHHapticParameterCurve?
-    var hapticDict: [CHHapticPattern.Key : [[CHHapticPattern.Key : [CHHapticPattern.Key : Any]]]]?
     var pattern: CHHapticPattern?
     var player: CHHapticAdvancedPatternPlayer?
 
     @objc func makeAdvancedPlayer(_ call: CAPPluginCall) {
         do {
-            let jsEvents = call.options["events"] as! Array<JSHapticEvent>
-            let jsParameterCurves = call.options["parameterCurves"] as! Array<JSHapticParameterCurve>
+            guard let jsEvents = call.getArray("events", [String:Any].self) else {
+                call.error("Property `events` must be passed in makeAdvancedPlayer()")
+                return
+            }
+            guard let parameterCurves = call.getArray("events", [String:Any].self) else {
+                call.error("Property `parameterCurves` must be passed in makeAdvancedPlayer()")
+                return
+            }
             
             let events = jsEvents.map{ event -> CHHapticEvent in
-                return CHHapticEvent.init(eventType: stringToHapticEventType[event.eventType] ?? .hapticContinuous,
-                                          parameters: event.parameters,
-                                          relativeTime: event.relativeTime,
-                                          duration: event.duration
+                return CHHapticEvent.init(eventType: stringToHapticEventType[event["eventType"] as! String]!,
+                                          parameters: event["parameters"],
+                                          relativeTime: event["relativeTime"] as! Double,
+                                          duration: event["duration"] as! Double
                 )
             }
             
