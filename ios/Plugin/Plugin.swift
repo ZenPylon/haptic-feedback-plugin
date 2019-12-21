@@ -4,14 +4,14 @@ import Capacitor
 
 @available(iOS 13.0, *)
 public class JSHapticEventParameter {
-    public static var stringToHapticParameterId: Dictionary<String, CHHapticEvent.ParameterID> = [
+    public static var stringToHapticParameterID: Dictionary<String, CHHapticEvent.ParameterID> = [
         "intensity": .hapticIntensity,
         "sharpness": .hapticSharpness
     ]
     
     public static func toCHHapticEventParameter(_ jsEventParameter:[String: Any]) -> CHHapticEventParameter {
         let jsParameterID = jsEventParameter["parameterId"] as! String
-        let nativeParameterID = stringToHapticParameterId[jsParameterID]!
+        let nativeParameterID = stringToHapticParameterID[jsParameterID]!
         return CHHapticEventParameter(parameterID: nativeParameterID, value: jsEventParameter["value"] as! Float)
     }
     
@@ -77,6 +77,11 @@ public class JSHapticParameterCurve {
 @available(iOS 13.0, *)
 @objc(HapticFeedbackPlugin)
 public class HapticFeedbackPlugin: CAPPlugin {
+    var stringToHapticEventType: Dictionary<String, CHHapticEvent.EventType> = [
+        "continuous": .hapticContinuous,
+        "transient": .hapticTransient
+    ]
+    
     var engine: CHHapticEngine?
     var hapticEvent: CHHapticEvent?
     var hapticPattern: CHHapticPattern?
@@ -90,26 +95,23 @@ public class HapticFeedbackPlugin: CAPPlugin {
                 call.error("Property `events` must be passed in makeAdvancedPlayer()")
                 return
             }
-            guard let parameterCurves = call.getArray("events", [String:Any].self) else {
+            guard let jsParameterCurves = call.getArray("events", [String:Any].self) else {
                 call.error("Property `parameterCurves` must be passed in makeAdvancedPlayer()")
                 return
             }
             
             let events = jsEvents.map{ event -> CHHapticEvent in
-                nativeParameters = JSHapticEventParameter.toCHHapticEventParameters(event["parameters"] as! Array<[String : Any]>)
+                let nativeParameters = JSHapticEventParameter.toCHHapticEventParameters(event["parameters"] as! Array<[String : Any]>)
                 return CHHapticEvent.init(eventType: stringToHapticEventType[event["eventType"] as! String]!,
                                           parameters: nativeParameters,
                                           relativeTime: event["relativeTime"] as! Double,
                                           duration: event["duration"] as! Double
                 )
             }
-            
             let parameterCurves = jsParameterCurves.map{ curve -> CHHapticParameterCurve in
-                return CHHapticParameterCurve.init(parameterID: stringToHapticParameterId[curve.parameterId] ?? .hapticIntensityControl,
-                                                   controlPoints: curve.controlPoints,
-                                                   relativeTime: curve.relativeTime
-                )
+                return JSHapticParameterCurve.toCHHapticParameterCurve(curve)
             }
+            
             self.pattern = try CHHapticPattern.init(events: events, parameterCurves: parameterCurves)
             try self.player = self.engine?.makeAdvancedPlayer(with: self.pattern!)
             call.success()
