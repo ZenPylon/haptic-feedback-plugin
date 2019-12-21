@@ -52,14 +52,20 @@ public class JSHapticPattern {
 
 @available(iOS 13.0, *)
 public class JSHapticParameterCurve {
-    var parameterId: String
-    var controlPoints: Array<CHHapticParameterCurve.ControlPoint>
-    var relativeTime: Double
+    public static var stringToHapticParameterId: Dictionary<String, CHHapticDynamicParameter.ID> = [
+        "intensity": .hapticIntensityControl,
+        "sharpness": .hapticSharpnessControl
+    ]
     
-    init(parameterId: String, controlPoints: Array<CHHapticParameterCurve.ControlPoint>, relativeTime: Double) {
-        self.parameterId = parameterId
-        self.controlPoints = controlPoints
-        self.relativeTime = relativeTime
+    public static func toCHHapticParameterCurve(_ jsParameterCurve: [String: Any]) -> CHHapticParameterCurve {
+        let jsParameterId = jsParameterCurve["parameterId"] as! String
+        let controlPoints = jsParameterCurve["controlPoints"] as! Array<[String: Any]>
+        let nativeControlPoints = controlPoints.map{ point -> CHHapticParameterCurve.ControlPoint in
+            return CHHapticParameterCurve.ControlPoint(relativeTime: point["relativeTime"] as! Double, value: point["value"] as! Float)
+        }
+
+        let nativeParameterId = stringToHapticParameterId[jsParameterId]
+        return CHHapticParameterCurve(parameterID: nativeParameterId!, controlPoints: nativeControlPoints, relativeTime: jsParameterCurve["relativeTime"] as! Double)
     }
 }
 
@@ -71,12 +77,6 @@ public class JSHapticParameterCurve {
 @available(iOS 13.0, *)
 @objc(HapticFeedbackPlugin)
 public class HapticFeedbackPlugin: CAPPlugin {
-    let stringToHapticEventType: Dictionary<String, CHHapticEvent.EventType> = [
-        "continuous": .hapticContinuous,
-        "transient": .hapticTransient
-    ]
-    
-    
     var engine: CHHapticEngine?
     var hapticEvent: CHHapticEvent?
     var hapticPattern: CHHapticPattern?
@@ -96,7 +96,7 @@ public class HapticFeedbackPlugin: CAPPlugin {
             }
             
             let events = jsEvents.map{ event -> CHHapticEvent in
-                let nativeParameters = JSHapticEventParameter.toCHHapticEventParameters(event["parameters"] as! Array<[String : Any]>)
+                nativeParameters = JSHapticEventParameter.toCHHapticEventParameters(event["parameters"] as! Array<[String : Any]>)
                 return CHHapticEvent.init(eventType: stringToHapticEventType[event["eventType"] as! String]!,
                                           parameters: nativeParameters,
                                           relativeTime: event["relativeTime"] as! Double,
