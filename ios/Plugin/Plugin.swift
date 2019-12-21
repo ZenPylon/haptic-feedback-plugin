@@ -3,16 +3,22 @@ import Foundation
 import Capacitor
 
 @available(iOS 13.0, *)
-public class JSEventParameter {
+public class JSHapticEventParameter {
     public static var stringToHapticParameterId: Dictionary<String, CHHapticEvent.ParameterID> = [
         "intensity": .hapticIntensity,
         "sharpness": .hapticSharpness
     ]
     
-    public static func toCHapticEventParameter(_ jsEventParameter:[String: Any]) -> CHHapticEventParameter {
+    public static func toCHHapticEventParameter(_ jsEventParameter:[String: Any]) -> CHHapticEventParameter {
         let jsParameterID = jsEventParameter["parameterId"] as! String
         let nativeParameterID = stringToHapticParameterId[jsParameterID]!
         return CHHapticEventParameter(parameterID: nativeParameterID, value: jsEventParameter["value"] as! Float)
+    }
+    
+    public static func toCHHapticEventParameters(_ jsEventParameters: Array<[String: Any]>) -> Array<CHHapticEventParameter> {
+        return jsEventParameters.map{ jsParameter -> CHHapticEventParameter in
+            return toCHHapticEventParameter(jsParameter)
+        }
     }
 }
 
@@ -90,8 +96,9 @@ public class HapticFeedbackPlugin: CAPPlugin {
             }
             
             let events = jsEvents.map{ event -> CHHapticEvent in
+                let nativeParameters = JSHapticEventParameter.toCHHapticEventParameters(event["parameters"] as! Array<[String : Any]>)
                 return CHHapticEvent.init(eventType: stringToHapticEventType[event["eventType"] as! String]!,
-                                          parameters: event["parameters"],
+                                          parameters: nativeParameters,
                                           relativeTime: event["relativeTime"] as! Double,
                                           duration: event["duration"] as! Double
                 )
