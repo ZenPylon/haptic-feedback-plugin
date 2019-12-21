@@ -95,7 +95,7 @@ public class HapticFeedbackPlugin: CAPPlugin {
                 call.error("Property `events` must be passed in makeAdvancedPlayer()")
                 return
             }
-            guard let jsParameterCurves = call.getArray("events", [String:Any].self) else {
+            guard let jsParameterCurves = call.getArray("parameterCurves", [String:Any].self) else {
                 call.error("Property `parameterCurves` must be passed in makeAdvancedPlayer()")
                 return
             }
